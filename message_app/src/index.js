@@ -1,6 +1,8 @@
 import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route, NavLink, useParams } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material";
-import { MessageList, Layout, Header, ChatList } from "./components";
+import { Header } from "./components";
+import { HomePage, ProfilePage, ChatPage } from "./pages"
 import "./global.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -13,12 +15,18 @@ const theme = createTheme({
     // },
 });
 
+
 root.render(
     <ThemeProvider theme={theme}>
-        <Layout
-            messages={<MessageList />}
-            header={<Header />}
-            chats={<ChatList />}
-        />
+        <BrowserRouter>
+            <Header />
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/chat/*" element={<ChatPage />} />
+                <Route path="*" element={<h1>404</h1>} />
+            </Routes>
+        </BrowserRouter>
     </ThemeProvider>
 );
+
