@@ -1,46 +1,45 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+    useState,
+    useEffect,
+    useRef,
+    useCallback,
+    useMemo,
+} from "react";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 // import PropTypes from "prop-types";
 import { InputAdornment } from "@mui/material";
+import { sendMessage, messagessSelector } from "../../store/messages";
 import { Message } from "./message";
 import { Input, SendIcon } from "./styles";
-import { useParams } from "react-router-dom";
 
+// @TODO  переделать как в https://codesandbox.io/s/gbchat-router-7fg2fn?file=/src/App.js:1887-1898
 export const MessageList = () => {
-    const [messageList, setMessageList] = useState({
-        room1: [{ message: 'sdsdgsdgsdgsdg', author: 'user' }],
-        room2: [{ message: 'rgetgvdfv', author: 'bot' }]
-    });
+    const { roomId } = useParams();
+
+    const selector = useMemo(() => messagessSelector(roomId), [roomId]);
+
+    const messages = useSelector(selector);
+
     const [value, setValue] = useState("");
 
-    /*
-    const [MessageList] = useState({
-    room1: [{message:'sdsdgsdgsdgsdg', author: 'human'}],
-    room2: [{message:'rgetgvdfv', author: 'bot'}]
-  });
-    */
-
+    const dispatch = useDispatch();
 
     const ref = useRef();
 
-    const { roomId } = useParams();
-    const messages = messageList[roomId] ?? [];
-
-    const sendMessage = useCallback((message, author = "User") => {
-        if (message) {
-            setMessageList((state) => ({
-                ...state,
-                [roomId]: [
-                    ...(state[roomId] ?? []),
-                    { author, message, date: new Date() }
-                ]
-            }));
-            setValue("");
-        }
-    }, [roomId]);
+    const send = useCallback(
+        (message, author = "User") => {
+            if (message) {
+                dispatch(sendMessage(roomId, { message, author }));
+                setValue("");
+            }
+        },
+        [roomId, dispatch]
+    );
 
     const handlePressInput = ({ code }) => {
         if (code === "Enter") {
-            sendMessage(value);
+            send(value);
         }
     };
 
@@ -52,29 +51,28 @@ export const MessageList = () => {
                 behavior: "smooth",
             });
         }
-    }, [messageList]);
+    }, [messages]);
 
     useEffect(() => {
-        const messages = messageList[roomId] ?? [];
         const lastMessage = messages[messages.length - 1];
         let timerId = null;
 
         if (messages.length && lastMessage.author === "User") {
             timerId = setTimeout(() => {
-                sendMessage("qwerty 123", "Bot");
-            }, 1000);
+                send("hello from bot", "Bot");
+            }, 500);
 
             return () => {
                 clearInterval(timerId);
             };
         }
-    }, [messageList, roomId, sendMessage]);
+    }, [send, messages]);
 
     return (
         <>
             <div ref={ref}>
                 {messages.map((message, index) => (
-                    <Message message={message} key={index} />
+                    <Message message={message} key={index} roomId={roomId} />
                 ))}
             </div>
 
@@ -87,10 +85,22 @@ export const MessageList = () => {
                 onKeyPress={handlePressInput}
                 endAdornment={
                     <InputAdornment position="end">
-                        {value && <SendIcon onClick={sendMessage} />}
+                        {value && <SendIcon onClick={send} />}
                     </InputAdornment>
                 }
             />
         </>
     );
 };
+
+  // MessageList.propTypes = {
+  //   message: PropTypes.string.isRequired,
+  //   o1: PropTypes.shape({
+  //     s1: PropTypes.string.isRequired,
+  //   }).isRequired,
+  //   a: PropTypes.arrayOf(
+  //     PropTypes.shape({
+  //       s1: PropTypes.string.isRequired,
+  //     }).isRequired
+  //   ).isRequired,
+  // };
