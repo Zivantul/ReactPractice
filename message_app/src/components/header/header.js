@@ -1,17 +1,45 @@
+import { useContext } from "react";
 import { NavLink } from "react-router-dom";
-import styles from "./header.module.css";
+import { ThemeContext } from "../../theme-context";
 
 const menu = [
-    { title: 'home', to: "/" },
-    { title: 'profile', to: "/profile" },
-    { title: 'chat', to: "/chat" },
+    {
+        title: "Home",
+        to: "/",
+    },
+    {
+        title: "Chat",
+        to: "/chat",
+    },
+    {
+        title: "Profile",
+        to: "/profile",
+    },
 ];
 
 export const Header = () => {
+    const { theme, themeSetter } = useContext(ThemeContext);
+
     return (
-        <div className={styles.header}>
+        <div>
+            <h1>{theme.name}</h1>
+            <button
+                disabled={theme.name === "light"}
+                onClick={() => themeSetter("light")}
+            >
+                light
+            </button>
+            <button
+                disabled={theme.name === "dark"}
+                onClick={() => themeSetter("dark")}
+            >
+                dark
+            </button>
+
             {menu.map((item) => (
-                <NavLink className={styles.menu} key={item.to} to={item.to}>{item.title}</NavLink>
+                <NavLink key={item.to} to={item.to}>
+                    {item.title}
+                </NavLink>
             ))}
         </div>
     );
