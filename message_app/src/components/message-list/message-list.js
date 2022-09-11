@@ -1,28 +1,45 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+    useState,
+    useEffect,
+    useRef,
+    useCallback,
+    useMemo,
+} from "react";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 // import PropTypes from "prop-types";
 import { InputAdornment } from "@mui/material";
+import { sendMessageWithBot, messagessSelector } from "../../store/messages";
 import { Message } from "./message";
 import { Input, SendIcon } from "./styles";
 
+
 export const MessageList = () => {
-    const [messageList, setMessageList] = useState([]);
+    const { roomId } = useParams();
+
+    const selector = useMemo(() => messagessSelector(roomId), [roomId]);
+
+    const messages = useSelector(selector);
+
     const [value, setValue] = useState("");
+
+    const dispatch = useDispatch();
 
     const ref = useRef();
 
-    const sendMessage = () => {
-        if (value) {
-            setMessageList([
-                ...messageList,
-                { author: "User", message: value, date: new Date() },
-            ]);
-            setValue("");
-        }
-    };
+    const send = useCallback(
+        (message, author = "User") => {
+            if (message) {
+                dispatch(sendMessageWithBot(roomId, { message, author }));
+                setValue("");
+            }
+        },
+        [roomId, dispatch]
+    );
 
     const handlePressInput = ({ code }) => {
         if (code === "Enter") {
-            sendMessage();
+            send(value);
         }
     };
 
@@ -34,31 +51,28 @@ export const MessageList = () => {
                 behavior: "smooth",
             });
         }
-    }, [messageList]);
+    }, [messages]);
 
     useEffect(() => {
-        const lastMessage = messageList[messageList.length - 1];
+        const lastMessage = messages[messages.length - 1];
         let timerId = null;
 
-        if (messageList.length && lastMessage.author === "User") {
+        if (messages.length && lastMessage.author === "User") {
             timerId = setTimeout(() => {
-                setMessageList([
-                    ...messageList,
-                    { author: "Bot", message: "Hello from Bot", date: new Date() },
-                ]);
+                send("hello from bot", "Bot");
             }, 500);
 
             return () => {
                 clearInterval(timerId);
             };
         }
-    }, [messageList]);
+    }, [send, messages]);
 
     return (
         <>
             <div ref={ref}>
-                {messageList.map((message, index) => (
-                    <Message message={message} key={index} />
+                {messages.map((message, index) => (
+                    <Message message={message} key={index} roomId={roomId} />
                 ))}
             </div>
 
@@ -71,7 +85,7 @@ export const MessageList = () => {
                 onKeyPress={handlePressInput}
                 endAdornment={
                     <InputAdornment position="end">
-                        {value && <SendIcon onClick={sendMessage} />}
+                        {value && <SendIcon onClick={() => send(value)} />}
                     </InputAdornment>
                 }
             />
