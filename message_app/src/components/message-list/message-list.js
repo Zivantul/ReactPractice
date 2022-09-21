@@ -9,11 +9,11 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 // import PropTypes from "prop-types";
 import { InputAdornment } from "@mui/material";
-import { sendMessageWithBot, messagessSelector } from "../../store/messages";
+import { sendMessageFb, messagessSelector } from "../../store/messages";
 import { Message } from "./message";
 import { Input, SendIcon } from "./styles";
 
-
+// @TODO  переделать как в https://codesandbox.io/s/gbchat-router-7fg2fn?file=/src/App.js:1887-1898
 export const MessageList = () => {
     const { roomId } = useParams();
 
@@ -30,7 +30,7 @@ export const MessageList = () => {
     const send = useCallback(
         (message, author = "User") => {
             if (message) {
-                dispatch(sendMessageWithBot(roomId, { message, author }));
+                dispatch(sendMessageFb({ message, author }, roomId));
                 setValue("");
             }
         },
@@ -92,3 +92,15 @@ export const MessageList = () => {
         </>
     );
 };
+
+  // MessageList.propTypes = {
+  //   message: PropTypes.string.isRequired,
+  //   o1: PropTypes.shape({
+  //     s1: PropTypes.string.isRequired,
+  //   }).isRequired,
+  //   a: PropTypes.arrayOf(
+  //     PropTypes.shape({
+  //       s1: PropTypes.string.isRequired,
+  //     }).isRequired
+  //   ).isRequired,
+  // };

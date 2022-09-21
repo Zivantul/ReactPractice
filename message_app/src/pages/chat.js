@@ -1,36 +1,50 @@
-import { MessageList, Layout, Header, ChatList } from "../components";
-import { Routes, Route, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { MessageList, Layout, ChatList } from "../components";
+import { getConversations } from "../store/conversations";
+import { getMessages } from "../store/messages";
 
 export const ChatPage = () => {
-    const navigation = useNavigate();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     useEffect(() => {
-        document.addEventListener("keydown", ({ code }) => {
+        const listener = ({ code }) => {
             if (code === "Escape") {
-                navigation("/chat")
+                navigate("/chat");
             }
-        })
-    }, [navigation])
+        };
+
+        document.addEventListener("keydown", listener);
+
+        return () => {
+            document.removeEventListener("keydown", listener);
+        };
+    }, [navigate]);
+
+    useEffect(() => {
+        dispatch(getConversations());
+        dispatch(getMessages());
+    }, [dispatch]);
 
     return (
-        <Routes>
-            <Route
-                path="/"
-                element={
-                    <Layout
-                        messages={<div style={{ color: '#fff' }}>Выберите чат</div>}
-                        chats={<ChatList />}
-                    />
-                } />
-            <Route
-                path=":roomId"
-                element={
-                    <Layout
-                        messages={<MessageList />}
-                        chats={<ChatList />}
-                    />
-                } />
-        </Routes>
-    )
-}
+        <>
+            <Routes>
+                <Route
+                    path="/"
+                    element={
+                        <Layout
+                            messages={<h1 style={{ color: "#fff" }}>Выберите чат</h1>}
+                            chats={<ChatList />}
+                        />
+                    }
+                />
+                <Route
+                    path=":roomId"
+                    element={<Layout messages={<MessageList />} chats={<ChatList />} />}
+                />
+            </Routes>
+        </>
+    );
+};
